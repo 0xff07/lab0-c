@@ -226,8 +226,96 @@ null_q:
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
+
+static int cmp(list_ele_t *h1, list_ele_t *h2)
+{
+    int len1 = strlen(h1->value);
+    int len2 = strlen(h2->value);
+    int min = len1 ^ ((len1 ^ len2) & -(len2 > len1));
+    return strncmp(h1->value, h2->value, min);
+}
+
+static list_ele_t *move_head(list_ele_t *head, unsigned int offset)
+{
+    for (unsigned int i = 0; i < offset; i++)
+        head = head->next;
+    return head;
+}
+
+static list_ele_t *merge_initials(list_ele_t *pre,
+                                  list_ele_t *pos,
+                                  unsigned int l,
+                                  unsigned int r)
+{
+    list_ele_t *h1 = NULL;
+    h1 = pre->next;
+
+    list_ele_t *tail1 = NULL, *h2 = NULL;
+    tail1 = move_head(pre, l);
+
+    h2 = tail1->next;
+
+    while (l && r) {
+        if (cmp(h1, h2) < 0) {
+            pre->next = h1;
+            h1 = h1->next;
+            l--;
+        } else {
+            pre->next = h2;
+            h2 = h2->next;
+            r--;
+        }
+        pre = pre->next;
+    }
+
+    list_ele_t *ret = NULL;
+    if (r) {
+        pre->next = h2;
+        ret = move_head(pre, r);
+    }
+    if (l) {
+        pre->next = h1;
+        tail1->next = pos;
+        ret = move_head(pre, l);
+    }
+    return ret;
+}
+
 void q_sort(queue_t *q)
 {
     /* TODO: You need to write the code for this function */
     /* TODO: Remove the above comment when you are about to implement. */
+    if (!q)
+        goto null_q;
+    if (!q->head)
+        goto empty_q;
+
+    list_ele_t dummy;
+    dummy.next = q->head;
+    dummy.value = NULL;
+
+    unsigned int mask = 0x1;
+    unsigned int pass = (q->size) >> 1;
+    unsigned int offset = 2;
+    unsigned int l = (q->size) & mask;
+    unsigned int r = 0;
+    while (pass) {
+        list_ele_t *head = &dummy;
+        list_ele_t *tail = &dummy;
+        for (unsigned int i = 0; i < pass; i++) {
+            tail = move_head(head, offset);
+            head = merge_initials(head, tail->next, offset / 2, offset / 2);
+        }
+        merge_initials(head, NULL, l, r);
+        offset <<= 1;
+        pass >>= 1;
+        mask <<= 1;
+        l = (q->size) & mask;
+        r = (q->size) & (mask - 1);
+    }
+    merge_initials(&dummy, NULL, l, r);
+    q->head = dummy.next;
+empty_q:
+null_q:
+    return;
 }
