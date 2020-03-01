@@ -242,10 +242,7 @@ static list_ele_t *move_head(list_ele_t *head, int offset)
     return head;
 }
 
-static list_ele_t *merge_initials(list_ele_t *pre,
-                                  list_ele_t *pos,
-                                  int l,
-                                  int r)
+static list_ele_t *merge_local(list_ele_t *pre, list_ele_t *pos, int l, int r)
 {
     list_ele_t *h1 = NULL;
     h1 = pre->next;
@@ -304,16 +301,16 @@ void q_sort(queue_t *q)
         list_ele_t *tail = &dummy;
         for (int i = 0; i < pass; i++) {
             tail = move_head(head, offset);
-            head = merge_initials(head, tail->next, offset / 2, offset / 2);
+            head = merge_local(head, tail->next, offset / 2, offset / 2);
         }
-        merge_initials(head, NULL, l, r);
+        merge_local(head, NULL, l, r);
         offset <<= 1;
         pass >>= 1;
         mask <<= 1;
         l = (q->size) & mask;
         r = (q->size) & (mask - 1);
     }
-    merge_initials(&dummy, NULL, l, r);
+    merge_local(&dummy, NULL, l, r);
     q->head = dummy.next;
 empty_q:
 null_q:
