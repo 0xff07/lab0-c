@@ -227,59 +227,50 @@ null_q:
  * element, do nothing.
  */
 
-static int cmp(list_ele_t *h1, list_ele_t *h2)
+static int cmp_naive(list_ele_t *h1, list_ele_t *h2)
 {
-    int len1 = strlen(h1->value);
-    int len2 = strlen(h2->value);
-    int min = len1 ^ ((len1 ^ len2) & -(len2 > len1));
-    return strncmp(h1->value, h2->value, min);
+    return strcmp(h1->value, h2->value);
 }
 
-static list_ele_t *move_head(list_ele_t *head, int offset)
+static int (*cmp)(list_ele_t *, list_ele_t *) = cmp_naive;
+static list_ele_t *merge(list_ele_t *h1,
+                         list_ele_t *h2,
+                         int (*cmp)(list_ele_t *, list_ele_t *))
 {
-    for (int i = 0; i < offset; i++)
-        head = head->next;
-    return head;
-}
-
-static list_ele_t *merge_local(list_ele_t *pre,
-                               list_ele_t *pos,
-                               int l,
-                               int r,
-                               int (*cmp)(list_ele_t *, list_ele_t *))
-{
-    list_ele_t *head1 = NULL;
-    head1 = pre->next;
-
-    list_ele_t *tail1 = NULL, *head2 = NULL;
-    tail1 = move_head(pre, l);
-
-    head2 = tail1->next;
-
-    while (l && r) {
-        if (cmp(head1, head2) < 0) {
-            pre->next = head1;
-            head1 = head1->next;
-            l--;
+    list_ele_t dummy = {NULL, NULL};
+    list_ele_t *head = &dummy;
+    while (h1 && h2) {
+        if (cmp(h1, h2) < 0) {
+            head->next = h1;
+            h1 = h1->next;
         } else {
-            pre->next = head2;
-            head2 = head2->next;
-            r--;
+            head->next = h2;
+            h2 = h2->next;
         }
-        pre = pre->next;
+        head = head->next;
     }
+    if (h1) {
+        head->next = h1;
+    }
+    if (h2) {
+        head->next = h2;
+    }
+    return dummy.next;
+}
 
-    list_ele_t *ret = NULL;
-    if (r) {
-        pre->next = head2;
-        ret = move_head(pre, r);
+static list_ele_t *merge_sort(list_ele_t *h1)
+{
+    if (!h1 || !h1->next)
+        return h1;
+
+    list_ele_t *fast = h1->next, *slow = h1;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
     }
-    if (l) {
-        pre->next = head1;
-        tail1->next = pos;
-        ret = move_head(pre, l);
-    }
-    return ret;
+    list_ele_t *h2 = slow->next;
+    slow->next = NULL;
+    return merge(merge_sort(h1), merge_sort(h2), cmp);
 }
 
 void q_sort(queue_t *q)
@@ -291,31 +282,7 @@ void q_sort(queue_t *q)
     if (!q->head)
         goto empty_q;
 
-    list_ele_t dummy;
-    dummy.next = q->head;
-    dummy.value = NULL;
-
-    int mask = 0x1;
-    int pass = (q->size) >> 1;
-    int offset = 2;
-    int l = (q->size) & mask;
-    int r = 0;
-    while (pass) {
-        list_ele_t *head = &dummy;
-        list_ele_t *tail = &dummy;
-        for (int i = 0; i < pass; i++) {
-            tail = move_head(head, offset);
-            head = merge_local(head, tail->next, offset / 2, offset / 2, cmp);
-        }
-        merge_local(head, NULL, l, r, cmp);
-        offset <<= 1;
-        pass >>= 1;
-        mask <<= 1;
-        l = (q->size) & mask;
-        r = (q->size) & (mask - 1);
-    }
-    merge_local(&dummy, NULL, l, r, cmp);
-    q->head = dummy.next;
+    q->head = merge_sort(q->head);
 empty_q:
 null_q:
     return;
