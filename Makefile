@@ -63,6 +63,8 @@ clean:
 	rm -f $(OBJS) $(deps) *~ qtest /tmp/qtest.*
 	rm -rf .$(DUT_DIR)
 	rm -rf *.dSYM
+	rm -rf perf.data
+	rm -rf perf.data.old
 	(cd traces; rm -f *~)
 
 -include $(deps)
