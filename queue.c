@@ -235,17 +235,17 @@ static int cmp(list_ele_t *h1, list_ele_t *h2)
     return strncmp(h1->value, h2->value, min);
 }
 
-static list_ele_t *move_head(list_ele_t *head, unsigned int offset)
+static list_ele_t *move_head(list_ele_t *head, int offset)
 {
-    for (unsigned int i = 0; i < offset; i++)
+    for (int i = 0; i < offset; i++)
         head = head->next;
     return head;
 }
 
 static list_ele_t *merge_initials(list_ele_t *pre,
                                   list_ele_t *pos,
-                                  unsigned int l,
-                                  unsigned int r)
+                                  int l,
+                                  int r)
 {
     list_ele_t *h1 = NULL;
     h1 = pre->next;
@@ -294,15 +294,15 @@ void q_sort(queue_t *q)
     dummy.next = q->head;
     dummy.value = NULL;
 
-    unsigned int mask = 0x1;
-    unsigned int pass = (q->size) >> 1;
-    unsigned int offset = 2;
-    unsigned int l = (q->size) & mask;
-    unsigned int r = 0;
+    int mask = 0x1;
+    int pass = (q->size) >> 1;
+    int offset = 2;
+    int l = (q->size) & mask;
+    int r = 0;
     while (pass) {
         list_ele_t *head = &dummy;
         list_ele_t *tail = &dummy;
-        for (unsigned int i = 0; i < pass; i++) {
+        for (int i = 0; i < pass; i++) {
             tail = move_head(head, offset);
             head = merge_initials(head, tail->next, offset / 2, offset / 2);
         }

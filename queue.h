@@ -30,7 +30,7 @@ typedef struct {
      */
     /* TODO: Remove the above comment when you are about to implement. */
     list_ele_t *tail;
-    long long size;
+    int size;
 } queue_t;
 
 /* Operations on queue */
