@@ -244,22 +244,22 @@ static list_ele_t *move_head(list_ele_t *head, int offset)
 
 static list_ele_t *merge_local(list_ele_t *pre, list_ele_t *pos, int l, int r)
 {
-    list_ele_t *h1 = NULL;
-    h1 = pre->next;
+    list_ele_t *head1 = NULL;
+    head1 = pre->next;
 
-    list_ele_t *tail1 = NULL, *h2 = NULL;
+    list_ele_t *tail1 = NULL, *head2 = NULL;
     tail1 = move_head(pre, l);
 
-    h2 = tail1->next;
+    head2 = tail1->next;
 
     while (l && r) {
-        if (cmp(h1, h2) < 0) {
-            pre->next = h1;
-            h1 = h1->next;
+        if (cmp(head1, head2) < 0) {
+            pre->next = head1;
+            head1 = head1->next;
             l--;
         } else {
-            pre->next = h2;
-            h2 = h2->next;
+            pre->next = head2;
+            head2 = head2->next;
             r--;
         }
         pre = pre->next;
@@ -267,11 +267,11 @@ static list_ele_t *merge_local(list_ele_t *pre, list_ele_t *pos, int l, int r)
 
     list_ele_t *ret = NULL;
     if (r) {
-        pre->next = h2;
+        pre->next = head2;
         ret = move_head(pre, r);
     }
     if (l) {
-        pre->next = h1;
+        pre->next = head1;
         tail1->next = pos;
         ret = move_head(pre, l);
     }
